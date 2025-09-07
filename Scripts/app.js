@@ -8,24 +8,377 @@ class MLMApp {
         this.userAccount = null;
         
         // Contract configuration - Update these with your actual contract details
-        this.contractAddress = "0x0000000000000000000000000000000000000000"; // Replace with actual contract address
-        this.usdtAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // USDT mainnet address
+        this.contractAddress = "0x92C0a3306B7e097319F715446BCdB650DBA82Fb8"; // Replace with actual contract address
+        this.usdtAddress = "0x55d398326f99059fF775485246999027B3197955"; // USDT mainnet address
         
         // Contract ABI (simplified for the main functions)
         this.contractABI = [
-            "function register(string calldata sponsorCode) external",
-            "function isUserExists(address a) external view returns (bool)",
-            "function getUserInfo(address a) external view returns (uint256 id, address referrer, uint256 directs, uint256 totalEarned)",
-            "function getUplineLineage(address user) external view returns (address[7] memory lineage)",
-            "function lastUserId() external view returns (uint256)",
-            "function FEE() external view returns (uint256)"
-        ];
+                {
+                    "inputs": [
+                        { "internalType": "address", "name": "_usdt", "type": "address" },
+                        { "internalType": "address", "name": "_admin", "type": "address" },
+                        { "internalType": "address", "name": "_treasury", "type": "address" },
+                        { "internalType": "uint16", "name": "_adminFeeBps", "type": "uint16" },
+                        { "internalType": "uint16", "name": "_treasuryFeeBps", "type": "uint16" }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "constructor"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "uint16",
+                            "name": "adminFeeBps",
+                            "type": "uint16"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint16",
+                            "name": "treasuryFeeBps",
+                            "type": "uint16"
+                        }
+                    ],
+                    "name": "FeeBpsUpdated",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "adminAmount",
+                            "type": "uint256"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "treasuryAmount",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "FeesRouted",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "previousOwner",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "newOwner",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OwnershipTransferred",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "amount",
+                            "type": "uint256"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint8",
+                            "name": "level",
+                            "type": "uint8"
+                        }
+                    ],
+                    "name": "PaymentDistributed",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "user",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "string",
+                            "name": "code",
+                            "type": "string"
+                        }
+                    ],
+                    "name": "ReferralCodeBound",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "oldTreasury",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "newTreasury",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "TreasuryUpdated",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "user",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "placedUnder",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "id",
+                            "type": "uint256"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "string",
+                            "name": "autoCode",
+                            "type": "string"
+                        }
+                    ],
+                    "name": "UserRegistered",
+                    "type": "event"
+                },
+                {
+                    "inputs": [],
+                    "name": "FEE",
+                    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "admin",
+                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "adminFeeBps",
+                    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+                    "name": "codeOwner",
+                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "address", "name": "user", "type": "address" }
+                    ],
+                    "name": "getUplineLineage",
+                    "outputs": [
+                        { "internalType": "address[7]", "name": "lineage", "type": "address[7]" }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{ "internalType": "address", "name": "a", "type": "address" }],
+                    "name": "getUserInfo",
+                    "outputs": [
+                        { "internalType": "uint256", "name": "id", "type": "uint256" },
+                        { "internalType": "address", "name": "referrer", "type": "address" },
+                        { "internalType": "uint256", "name": "directs", "type": "uint256" },
+                        { "internalType": "uint256", "name": "totalEarned", "type": "uint256" }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{ "internalType": "address", "name": "a", "type": "address" }],
+                    "name": "isUserExists",
+                    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "lastUserId",
+                    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "owner",
+                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "string", "name": "sponsorCode", "type": "string" }
+                    ],
+                    "name": "register",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "renounceOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "address", "name": "token", "type": "address" },
+                        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+                        { "internalType": "address", "name": "to", "type": "address" }
+                    ],
+                    "name": "rescueTokens",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "uint16", "name": "newAdminBps", "type": "uint16" },
+                        { "internalType": "uint16", "name": "newTreasuryBps", "type": "uint16" }
+                    ],
+                    "name": "setFeeBps",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "address", "name": "newTreasury", "type": "address" }
+                    ],
+                    "name": "setTreasury",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        { "internalType": "address", "name": "newOwner", "type": "address" }
+                    ],
+                    "name": "transferOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "treasury",
+                    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "treasuryFeeBps",
+                    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "usdt",
+                    "outputs": [
+                        { "internalType": "contract IERC20", "name": "", "type": "address" }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                    "name": "users",
+                    "outputs": [
+                        { "internalType": "uint256", "name": "id", "type": "uint256" },
+                        { "internalType": "address", "name": "referrer", "type": "address" },
+                        { "internalType": "uint256", "name": "totalEarned", "type": "uint256" }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                }
+            ];
         
         this.usdtABI = [
-            "function approve(address spender, uint256 amount) external returns (bool)",
-            "function allowance(address owner, address spender) external view returns (uint256)",
-            "function balanceOf(address account) external view returns (uint256)"
-        ];
+                {
+                    "constant": true,
+                    "inputs": [{ "name": "_owner", "type": "address" }],
+                    "name": "balanceOf",
+                    "outputs": [{ "name": "balance", "type": "uint256" }],
+                    "type": "function"
+                },
+                {
+                    "constant": true,
+                    "inputs": [
+                        { "name": "_owner", "type": "address" },
+                        { "name": "_spender", "type": "address" }
+                    ],
+                    "name": "allowance",
+                    "outputs": [{ "name": "", "type": "uint256" }],
+                    "type": "function"
+                },
+                {
+                    "constant": false,
+                    "inputs": [
+                        { "name": "_spender", "type": "address" },
+                        { "name": "_value", "type": "uint256" }
+                    ],
+                    "name": "approve",
+                    "outputs": [{ "name": "", "type": "bool" }],
+                    "type": "function"
+                }
+            ];
         
         this.init();
     }
@@ -158,7 +511,7 @@ class MLMApp {
             
             let hasUplines = false;
             for (let i = 0; i < lineage.length; i++) {
-                if (lineage[i] !== '0x0000000000000000000000000000000000000000') {
+                if (lineage[i] !== '0x92C0a3306B7e097319F715446BCdB650DBA82Fb8') {
                     hasUplines = true;
                     const lineageItem = this.createLineageItem(lineage[i], i + 1);
                     container.appendChild(lineageItem);
