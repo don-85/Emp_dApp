@@ -332,11 +332,6 @@ body {
     background-clip: text;
 }
 
-/* Footer */
-footer {
-    margin-top: auto;
-}
-
 /* Smooth Scrolling */
 html {
     scroll-behavior: smooth;
